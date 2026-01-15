@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phone Battle Pro</title>
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+body{
+  background: radial-gradient(circle at top, #0f2027, #000);
+  color:white;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+h1{
+  margin-bottom:20px;
+  font-size:2.2rem;
+  text-shadow:0 0 15px #00ffcc;
+}
+
+.container{
+  display:flex;
+  gap:30px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.card{
+  background:rgba(20,20,20,0.9);
+  width:280px;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 0 15px rgba(0,255,204,0.3);
+  transition:0.3s;
+  animation:fadeIn 1s ease;
+  position:relative;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  margin-bottom:10px;
+  font-size:16px;
+}
+
+.suggestions{
+  background:#111;
+  position:absolute;
+  top:75px;
+  left:20px;
+  width:240px;
+  border-radius:5px;
+  max-height:150px;
+  overflow-y:auto;
+  display:none;
+  z-index:10;
+}
+.suggestions div{
+  padding:8px;
+  cursor:pointer;
+  border-bottom:1px solid #333;
+}
+.suggestions div:hover{
+  background:#00ffcc;
+  color:black;
+}
+
+.specs{
+  margin-top:10px;
+  font-size:14px;
+  line-height:1.6;
+  min-height:80px;
+}
+
+button{
+  margin-top:20px;
+  padding:12px 30px;
+  border:none;
+  border-radius:30px;
+  font-size:16px;
+  font-weight:bold;
+  background:linear-gradient(45deg,#00ffcc,#00ff66);
+  cursor:pointer;
+  box-shadow:0 0 15px #00ffcc;
+}
+
+.result{
+  margin-top:25px;
+  font-size:22px;
+  font-weight:bold;
+  text-shadow:0 0 10px gold;
+}
+
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(20px);}
+  to{opacity:1; transform:translateY(0);}
+}
+</style>
+</head>
+<body>
+
+<h1>🔥 Phone Battle Arena 🔥</h1>
+
+<div class="container">
+  <div class="card">
+    <h2>Phone 1</h2>
+    <input id="p1" oninput="autoSuggest(this,'sug1')" placeholder="Type phone name">
+    <div class="suggestions" id="sug1"></div>
+    <div class="specs" id="spec1"></div>
+  </div>
+
+  <div class="card">
+    <h2>Phone 2</h2>
+    <input id="p2" oninput="autoSuggest(this,'sug2')" placeholder="Type phone name">
+    <div class="suggestions" id="sug2"></div>
+    <div class="specs" id="spec2"></div>
+  </div>
+</div>
+
+<button onclick="compare()">Compare</button>
+
+<div class="result" id="result"></div>
+
+<script>
+const phones = {
+  "iphone 13": {ram:4, storage:128, battery:3240, camera:12},
+  "iphone 14": {ram:6, storage:128, battery:3279, camera:12},
+  "samsung a54": {ram:8, storage:128, battery:5000, camera:50},
+  "samsung s21": {ram:8, storage:128, battery:4000, camera:64},
+  "redmi 9a": {ram:2, storage:32, battery:5000, camera:13},
+  "realme 11x 5g": {ram:6, storage:128, battery:5000, camera:64},
+  "realme 12x 5g": {ram:8, storage:128, battery:5000, camera:50},
+  "redmi note 10": {ram:4, storage:64, battery:5000, camera:48}
+};
+
+const phoneNames = Object.keys(phones);
+
+function autoSuggest(input, sugId){
+  let val = input.value.toLowerCase();
+  let sugBox = document.getElementById(sugId);
+  sugBox.innerHTML = "";
+
+  if(val === ""){
+    sugBox.style.display = "none";
+    return;
+  }
+
+  let matches = phoneNames.filter(p => p.includes(val));
+  if(matches.length === 0){
+    sugBox.style.display = "none";
+    return;
+  }
+
+  matches.forEach(m => {
+    let div = document.createElement("div");
+    div.innerText = m;
+    div.onclick = () => {
+      input.value = m;
+      sugBox.style.display = "none";
+    };
+    sugBox.appendChild(div);
+  });
+
+  sugBox.style.display = "block";
+}
+
+function getPhone(name){
+  return phones[name.toLowerCase()];
+}
+
+function displaySpecs(data,id){
+  if(!data){
+    document.getElementById(id).innerHTML = "❌ Phone not found";
+    return;
+  }
+  document.getElementById(id).innerHTML = `
+  ⚡ RAM: ${data.ram} GB<br>
+  💾 Storage: ${data.storage} GB<br>
+  🔋 Battery: ${data.battery} mAh<br>
+  📸 Camera: ${data.camera} MP`;
+}
+
+function compare(){
+  const name1 = document.getElementById("p1").value.toLowerCase();
+  const name2 = document.getElementById("p2").value.toLowerCase();
+
+  const d1 = getPhone(name1);
+  const d2 = getPhone(name2);
+
+  displaySpecs(d1,"spec1");
+  displaySpecs(d2,"spec2");
+
+  if(!d1 || !d2){
+    document.getElementById("result").innerText = "Choose phones from suggestions!";
+    return;
+  }
+
+  let s1 = 0, s2 = 0;
+  if(d1.ram > d2.ram) s1++; else if(d2.ram > d1.ram) s2++;
+  if(d1.storage > d2.storage) s1++; else if(d2.storage > d1.storage) s2++;
+  if(d1.battery > d2.battery) s1++; else if(d2.battery > d1.battery) s2++;
+  if(d1.camera > d2.camera) s1++; else if(d2.camera > d1.camera) s2++;
+
+  if(s1 > s2)
+    result.innerText = `${name1.toUpperCase()} WINS 🏆 (${s1} - ${s2})`;
+  else if(s2 > s1)
+    result.innerText = `${name2.toUpperCase()} WINS 🏆 (${s2} - ${s1})`;
+  else
+    result.innerText = "IT'S A TIE 🤝";
+}
+</script>
+
+</body>
+</html>
